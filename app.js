@@ -1,51 +1,14 @@
-const {readFile, writeFile} = require('fs');
-const util = require('util');
-const readFilePromise = util.promisify(readFile);
-const writeFilePromise = util.promisify(writeFile);
+var http = require('http')
+var fs = require('fs')
 
+http.createServer(function (req, res) {
 
-//Async function with callback
-
-readFile('./content/first/txt', 'utf-8', (err, data) => {
-    if (err) {
-        return 
-    } else {
-        console.log(data)
-    }
-})
-
-//Using Promise may better structure the callbackchain
-
-const getText = (path) => {
-    return new Promise((resolve, reject) => {
-        readFile('./content/first.txt', 'utf-8', (err, data) => {
-            if (err) {
-                reject(err)
-            } else {
-                resolve(data)
-            }
-        })
+    const fileStream = fs.createReadStream('./content/big.txt','utf8')
+    fileStream.on('open', () => {
+        fileStream.pipe(res)
     })
-}
-
-//Managing CallBack Chain
-
-getText('./content/first.txt')
-.then(res => console.log(res))
-.catch(err => console.log(err))
-
-const start = async() => {
-    try{
-        const first = await readFilePromise('./content/first.txt', 'utf-8')
-        const second = await readFilePromise('./content/second.txt', 'utf-8')
-        await writeFilePromise(
-            './content/promise-res-async.txt',
-            `This is Good. ${first} ${first}`
-        )
-        console.log(first, second)
-    } catch (error) {
-        console.log(error)
-    }
-}
-
-start()
+    fileStream.on('error', (err) => {
+        res.end(err)
+    })
+})
+.listen(5000)
